@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Hırdavat · Satış Fişi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#1b1e22;
+    --steel:#4b5563;
+    --steel-light:#e4e7eb;
+    --steel-dark:#2c3138;
+    --paper:#f7f7f5;
+    --paper-dim:#ececea;
+    --amber:#f0a202;
+    --amber-dark:#c67f00;
+    --rust:#b8482a;
+    --ok:#2f7d52;
+    --line:#d7d9d4;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--steel-dark);font-family:var(--sans);color:var(--ink);}
+  #app{min-height:100vh;background:var(--paper);}
+  button{font-family:var(--sans);cursor:pointer;}
+  input,select{font-family:var(--sans);}
+
+  .hazard{
+    height:8px;
+    background:repeating-linear-gradient(135deg, var(--ink) 0 10px, var(--amber) 10px 20px);
+  }
+  .topbar{
+    background:var(--ink);color:#fff;
+    padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:12px;
+  }
+  .brand{display:flex;flex-direction:column;line-height:1.1;}
+  .brand .name{font-weight:800;letter-spacing:1.5px;font-size:18px;text-transform:uppercase;}
+  .brand .sub{font-size:11px;color:#c9cdd3;letter-spacing:.5px;}
+  .who{display:flex;align-items:center;gap:10px;font-size:13px;color:#dfe2e6;}
+  .who .badge{
+    background:var(--amber);color:var(--ink);font-weight:700;
+    padding:2px 8px;border-radius:3px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+  }
+  .logout-btn{
+    background:transparent;border:1px solid #565c66;color:#e8eaed;
+    padding:6px 10px;border-radius:4px;font-size:12px;
+  }
+  .logout-btn:hover{border-color:var(--amber);color:var(--amber);}
+
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 90px;}
+
+  /* LOGIN */
+  .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--steel-dark);}
+  .login-card{
+    background:var(--paper);width:100%;max-width:360px;border-radius:8px;overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+  .login-card .hero{padding:26px 24px 18px;text-align:center;background:var(--ink);color:#fff;}
+  .login-card .hero .name{font-weight:800;font-size:24px;letter-spacing:2px;text-transform:uppercase;}
+  .login-card .hero .sub{font-size:12px;color:#c9cdd3;margin-top:4px;letter-spacing:.5px;}
+  .login-body{padding:22px 24px 26px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+  .field input, .field select{
+    width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:5px;font-size:15px;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--amber-dark);}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:11px 16px;border-radius:5px;border:none;font-weight:700;font-size:14px;
+    letter-spacing:.2px;
+  }
+  .btn-primary{background:var(--ink);color:#fff;width:100%;}
+  .btn-primary:hover{background:#000;}
+  .btn-amber{background:var(--amber);color:var(--ink);}
+  .btn-amber:hover{background:var(--amber-dark);color:#fff;}
+  .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--steel);}
+  .btn-danger{background:transparent;color:var(--rust);border:1.5px solid var(--rust);}
+  .btn-danger:hover{background:var(--rust);color:#fff;}
+  .btn-ok{background:var(--ok);color:#fff;}
+  .btn-block{width:100%;}
+  .btn-sm{padding:6px 10px;font-size:12px;border-radius:4px;}
+  .error-msg{background:#fbeae5;color:var(--rust);border:1px solid #f0c3b6;padding:9px 11px;border-radius:5px;font-size:13px;margin-bottom:12px;}
+  .hint{font-size:11.5px;color:var(--steel);margin-top:10px;text-align:center;line-height:1.5;}
+
+  /* Section headers */
+  .section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--steel);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .search-row{display:flex;gap:8px;margin-bottom:10px;}
+  .search-row input{flex:1;}
+
+  .cust-list{display:flex;flex-direction:column;gap:8px;}
+  .cust-item{
+    background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:12px 14px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .cust-item:hover{border-color:var(--amber-dark);}
+  .cust-item .cname{font-weight:700;font-size:15px;}
+  .cust-item .cphone{font-size:12px;color:var(--steel);margin-top:2px;}
+  .empty-note{color:var(--steel);font-size:13px;padding:14px 4px;text-align:center;}
+
+  /* Receipt / fiş */
+  .ticket{
+    background:#fff;border:1.5px solid var(--line);border-radius:8px;
+    position:relative;overflow:hidden;margin-bottom:16px;
+  }
+  .ticket-head{
+    padding:14px 16px;border-bottom:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:flex-start;
+  }
+  .ticket-head .cname{font-weight:800;font-size:16px;}
+  .ticket-head .meta{font-size:11.5px;color:var(--steel);margin-top:2px;}
+  .change-cust{background:none;border:none;color:var(--amber-dark);font-size:12px;font-weight:700;text-decoration:underline;padding:0;}
+
+  .scan-bar{display:flex;gap:8px;padding:12px 16px;background:var(--paper-dim);}
+  .scan-bar input{flex:1;font-family:var(--mono);}
+
+  .item-row{
+    display:grid;grid-template-columns:1fr 56px 78px 30px;gap:8px;align-items:center;
+    padding:10px 16px;border-bottom:1px solid var(--paper-dim);
+  }
+  .item-row:last-child{border-bottom:none;}
+  .item-row .barcode{font-family:var(--mono);font-size:10.5px;color:var(--steel);letter-spacing:.3px;}
+  .item-row input[type=text]{border:none;border-bottom:1px solid transparent;padding:4px 2px;font-size:14px;font-weight:600;background:transparent;width:100%;}
+  .item-row input[type=text]:focus{outline:none;border-bottom:1px solid var(--amber-dark);}
+  .item-row input[type=number]{border:1px solid var(--line);border-radius:4px;padding:5px 4px;font-size:13px;font-family:var(--mono);width:100%;text-align:right;}
+  .item-row .rm{background:none;border:none;color:var(--rust);font-size:16px;font-weight:800;}
+  .no-items{padding:22px 16px;text-align:center;color:var(--steel);font-size:13px;}
+
+  .ticket-foot{
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+    border-top:1.5px solid var(--ink);background:var(--paper-dim);
+  }
+  .ticket-foot .total-label{font-size:12px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.4px;}
+  .ticket-foot .total-val{font-family:var(--mono);font-weight:800;font-size:22px;}
+  .save-row{display:flex;gap:10px;margin-top:14px;}
+  .save-row .btn{flex:1;}
+
+  .perforation{
+    height:10px;
+    background-image:radial-gradient(circle at 6px 5px, var(--paper) 4px, transparent 4.5px);
+    background-size:14px 10px;background-position:-2px 0;
+    margin-top:-1px;
+  }
+
+  /* Scanner modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  .modal-card{background:#fff;border-radius:10px;max-width:420px;width:100%;overflow:hidden;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);}
+  .modal-head h3{margin:0;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+  .modal-close{background:none;border:none;font-size:20px;line-height:1;color:var(--steel);}
+  #reader{width:100%;background:#000;min-height:240px;}
+  .modal-body{padding:14px 16px;}
+  .scan-status{font-size:12.5px;color:var(--steel);text-align:center;margin-top:8px;min-height:16px;}
+
+  /* Admin */
+  .tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1.5px solid var(--line);}
+  .tab-btn{
+    background:none;border:none;padding:10px 4px;margin-right:14px;font-size:13px;font-weight:700;
+    color:var(--steel);border-bottom:2.5px solid transparent;text-transform:uppercase;letter-spacing:.3px;
+  }
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--amber);}
+  .doc-card{background:#fff;border:1.5px solid var(--line);border-radius:7px;margin-bottom:10px;overflow:hidden;}
+  .doc-summary{padding:13px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+  .doc-summary .left .cname{font-weight:800;font-size:15px;}
+  .doc-summary .left .meta{font-size:11.5px;color:var(--steel);margin-top:3px;}
+  .doc-summary .right{text-align:right;}
+  .doc-summary .right .amt{font-family:var(--mono);font-weight:800;font-size:16px;}
+  .status-pill{font-size:10px;font-weight:800;text-transform:uppercase;padding:3px 7px;border-radius:20px;letter-spacing:.3px;display:inline-block;margin-top:4px;}
+  .status-pending{background:#fdecc8;color:#8a5b00;}
+  .status-done{background:#dcf0e6;color:var(--ok);}
+  .doc-detail{border-top:1px dashed var(--line);padding:10px 15px 14px;background:var(--paper-dim);}
+  .doc-detail .di-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #e2e2de;}
+  .doc-detail .di-row:last-of-type{border-bottom:none;}
+  .doc-actions{margin-top:10px;display:flex;gap:8px;}
+
+  .staff-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:10px 14px;margin-bottom:8px;}
+  .staff-row .sname{font-weight:700;font-size:14px;}
+  .staff-row .suser{font-size:11.5px;color:var(--steel);font-family:var(--mono);}
+  .add-staff-form{background:#fff;border:1.5px solid var(--line);border-radius:7px;padding:14px;margin-top:14px;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .fab-newcust{
+    position:fixed;bottom:20px;left:16px;right:16px;max-width:608px;margin:0 auto;
+  }
+  @media (min-width:520px){
+    .fab-newcust{position:static;margin-top:14px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPmQOJiq8E0Nv2fCE6uD-u4znZrH2eeuo",
+    authDomain: "hirdavatsat.firebaseapp.com",
+    projectId: "hirdavatsat",
+    storageBucket: "hirdavatsat.firebasestorage.app",
+    messagingSenderId: "235269029281",
+    appId: "1:235269029281:web:f67fca287d405174e09fe0"
+  };
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+
+(function(){
+  "use strict";
+
+  const KEY_USERS = "hirdavat_users_v1";
+  const KEY_CUSTOMERS = "hirdavat_customers_v1";
+  const KEY_DOCS = "hirdavat_documents_v1";
+  const KEY_PRODUCTS = "hirdavat_products_v1";
+
+  let session = null;
+  let view = "login";
+  let loginError = "";
+  let busy = false;
+
+  let staffStage = "search"; // 'search' | 'ticket'
+  let custQuery = "";
+  let customers = [];
+  let activeCustomer = null;
+  let ticketItems = []; // {id, barcode, name, qty, price}
+  let manualBarcode = "";
+  let showNewCustForm = false;
+  let newCustName = "";
+  let newCustPhone = "";
+
+  let adminTab = "pending"; // 'pending' | 'done' | 'staff'
+  let documents = [];
+  let expandedDoc = null;
+  let staffUsers = [];
+  let showAddStaff = false;
+  let newStaffName = "", newStaffUser = "", newStaffPass = "";
+
+  let scannerActive = false;
+  let html5Qrcode = null;
+  let scanHandled = false;
+
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function fmtMoney(n){
+    n = Number(n) || 0;
+    return n.toLocaleString("tr-TR", {minimumFractionDigits:2, maximumFractionDigits:2}) + " ₺";
+  }
+  function fmtDate(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString("tr-TR") + " " + d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+  }
+  function uid(prefix){
+    return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7);
+  }
+
+  const memCache = {}; // keeps the app usable within a session even if the
+                        // persistent storage backend is slow/unavailable
+
+  async function storageGet(key, shared){
+    if(Object.prototype.hasOwnProperty.call(memCache, key)) return memCache[key];
+    try{
+      const ref = doc(db, "hirdavat_data", key);
+      const snap = await getDoc(ref);
+      const v = snap.exists() ? snap.data().value : null;
+      memCache[key] = v;
+      return v;
+    }catch(e){
+      console.error("firestore get error", key, e);
+      memCache[key] = null;
+      return null;
+    }
+  }
+  async function storageSet(key, value, shared){
+    memCache[key] = value; // update cache immediately so subsequent reads
+                            // in this session always see the latest data
+    try{
+      const ref = doc(db, "hirdavat_data", key);
+      await setDoc(ref, {value, updatedAt: Date.now()});
+      return true;
+    }catch(e){
+      console.error("firestore set error", key, e);
+      return true; // still usable for this session via memCache
+    }
+  }
+
+  async function ensureSeedUsers(){
+    let raw = await storageGet(KEY_USERS, true);
+    if(!raw){
+      const seed = [
+        {username:"admin", password:"admin123", name:"Yönetici", role:"admin"},
+        {username:"personel", password:"1234", name:"Personel", role:"staff"}
+      ];
+      await storageSet(KEY_USERS, JSON.stringify(seed), true);
+      return seed;
+    }
+    try{ return JSON.parse(raw); }catch(e){ return []; }
+  }
+  async function loadUsers(){
+    const raw = await storageGet(KEY_USERS, true);
+    if(!raw) return [];
+    try{ return JSON.parse(raw); }catch(e){ return []; }
+  }
+  async function saveUsers(list){ return storageSet(KEY_USERS, JSON.stringify(list), true); }
+
+  async function loadCustomers(){
+    const raw = await storageGet(KEY_CUSTOMERS, true);
+    if(!raw) return [];
+    try{ return JSON.parse(raw); }catch(e){ return []; }
+  }
+  async function saveCustomers(list){ return storageSet(KEY_CUSTOMERS, JSON.stringify(list), true); }
+
+  async function loadDocs(){
+    const raw = await storageGet(KEY_DOCS, true);
+    if(!raw) return [];
+    try{ return JSON.parse(raw); }catch(e){ return []; }
+  }
+  async function saveDocs(list){ return storageSet(KEY_DOCS, JSON.stringify(list), true); }
+
+  async function loadProducts(){
+    const raw = await storageGet(KEY_PRODUCTS, true);
+    if(!raw) return {};
+    try{ return JSON.parse(raw); }catch(e){ return {}; }
+  }
+  async function saveProducts(map){ return storageSet(KEY_PRODUCTS, JSON.stringify(map), true); }
+
+  function render(){
+    const app = document.getElementById("app");
+    if(view === "login") app.innerHTML = renderLogin();
+    else if(view === "staff") app.innerHTML = renderStaff();
+    else if(view === "admin") app.innerHTML = renderAdmin();
+    attachHandlers();
+  }
+
+  function renderLogin(){
+    return `
+      <div class="login-wrap">
+        <div class="login-card">
+          <div class="hero">
+            <div class="name">Hırdavat</div>
+            <div class="sub">Satış Fişi Sistemi</div>
+          </div>
+          <div class="login-body">
+            ${loginError ? `<div class="error-msg">${escapeHtml(loginError)}</div>` : ""}
+            <form id="login-form">
+              <div class="field">
+                <label>Kullanıcı adı</label>
+                <input type="text" id="login-user" autocomplete="username" required />
+              </div>
+              <div class="field">
+                <label>Şifre</label>
+                <input type="password" id="login-pass" autocomplete="current-password" required />
+              </div>
+              <button type="submit" class="btn btn-primary" ${busy?"disabled":""}>${busy ? "Giriş yapılıyor…" : "Giriş yap"}</button>
+            </form>
+            <div class="hint">Demo hesaplar — Personel: <b>personel / 1234</b><br/>Yönetici: <b>admin / admin123</b></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStaff(){
+    let body = "";
+    if(staffStage === "search"){
+      const filtered = custQuery.trim()
+        ? customers.filter(c => c.name.toLowerCase().includes(custQuery.trim().toLowerCase()))
+        : customers.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,25);
+
+      body = `
+        <div class="section-title">Müşteri seç</div>
+        <div class="search-row">
+          <input type="text" id="cust-search" placeholder="Müşteri ara…" value="${escapeHtml(custQuery)}" />
+        </div>
+        <div class="cust-list">
+          ${filtered.length ? filtered.map(c => `
+            <div class="cust-item" data-cust="${escapeHtml(c.id)}">
+              <div>
+                <div class="cname">${escapeHtml(c.name)}</div>
+                ${c.phone ? `<div class="cphone">${escapeHtml(c.phone)}</div>` : ""}
+              </div>
+              <span style="color:var(--amber-dark);font-weight:800;">→</span>
+            </div>
+          `).join("") : `<div class="empty-note">${custQuery ? "Eşleşen müşteri yok." : "Henüz müşteri kaydı yok."}</div>`}
+        </div>
+
+        ${showNewCustForm ? `
+          <div class="add-staff-form" style="margin-top:14px;">
+            <div class="field">
+              <label>Müşteri adı</label>
+              <input type="text" id="new-cust-name" value="${escapeHtml(newCustName)}" placeholder="Ad Soyad" />
+            </div>
+            <div class="field">
+              <label>Telefon (opsiyonel)</label>
+              <input type="text" id="new-cust-phone" value="${escapeHtml(newCustPhone)}" placeholder="05xx xxx xx xx" />
+            </div>
+            <div class="save-row">
+              <button class="btn btn-ghost" id="cancel-new-cust">Vazgeç</button>
+              <button class="btn btn-amber" id="confirm-new-cust">Müşteriyi ekle</button>
+            </div>
+          </div>
+        ` : `
+          <div class="fab-newcust">
+            <button class="btn btn-primary btn-block" id="open-new-cust">+ Yeni müşteri</button>
+          </div>
+        `}
+      `;
+    } else {
+      const total = ticketItems.reduce((s,it)=> s + (Number(it.qty)||0) * (Number(it.price)||0), 0);
+      body = `
+        <div class="ticket">
+          <div class="ticket-head">
+            <div>
+              <div class="cname">${escapeHtml(activeCustomer.name)}</div>
+              <div class="meta">${activeCustomer.phone ? escapeHtml(activeCustomer.phone) + " · " : ""}Fiş hazırlanıyor</div>
+            </div>
+            <button class="change-cust" id="change-cust">Müşteriyi değiştir</button>
+          </div>
+
+          <div class="scan-bar">
+            <button class="btn btn-amber" id="open-scanner">📷 Barkod okut</button>
+            <input type="text" id="manual-barcode" placeholder="Barkod no (manuel)" value="${escapeHtml(manualBarcode)}" />
+            <button class="btn btn-ghost btn-sm" id="add-manual-barcode">Ekle</button>
+          </div>
+
+          ${ticketItems.length ? ticketItems.map(it => `
+            <div class="item-row" data-item="${it.id}">
+              <div>
+                <input type="text" class="it-name" data-field="name" placeholder="Ürün adı" value="${escapeHtml(it.name)}" />
+                <div class="barcode">${escapeHtml(it.barcode)}</div>
+              </div>
+              <input type="number" min="0" step="1" class="it-qty" data-field="qty" value="${it.qty}" />
+              <input type="number" min="0" step="0.01" class="it-price" data-field="price" value="${it.price}" />
+              <button class="rm" data-remove="${it.id}" title="Satırı sil">×</button>
+            </div>
+          `).join("") : `<div class="no-items">Henüz kalem eklenmedi. Barkod okutarak başlayın.</div>`}
+
+          <div class="perforation"></div>
+          <div class="ticket-foot">
+            <div class="total-label">Toplam</div>
+            <div class="total-val">${fmtMoney(total)}</div>
+          </div>
+        </div>
+        <div class="save-row">
+          <button class="btn btn-ghost" id="cancel-ticket">İptal</button>
+          <button class="btn btn-primary" id="save-ticket" ${ticketItems.length ? "" : "disabled"}>Fişi kaydet</button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="topbar">
+        <div class="brand"><span class="name">Hırdavat</span><span class="sub">Satış Fişi</span></div>
+        <div class="who">
+          <span>${escapeHtml(session.name)} <span class="badge">Personel</span></span>
+          <button class="logout-btn" id="logout-btn">Çıkış</button>
+        </div>
+      </div>
+      <div class="hazard"></div>
+      <div class="wrap">${body}</div>
+      ${scannerActive ? renderScannerModal() : ""}
+    `;
+  }
+
+  function renderScannerModal(){
+    return `
+      <div class="modal-backdrop" id="scanner-backdrop">
+        <div class="modal-card">
+          <div class="modal-head">
+            <h3>Barkod okut</h3>
+            <button class="modal-close" id="close-scanner">×</button>
+          </div>
+          <div id="reader"></div>
+          <div class="modal-body">
+            <div class="scan-status" id="scan-status">Kamera başlatılıyor…</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAdmin(){
+    let body = "";
+    if(adminTab === "pending" || adminTab === "done"){
+      const filtered = documents
+        .filter(d => adminTab === "pending" ? d.status === "pending" : d.status === "done")
+        .sort((a,b)=> adminTab === "pending" ? a.createdAt - b.createdAt : b.processedAt - a.processedAt);
+
+      body = filtered.length ? filtered.map(d => `
+        <div class="doc-card">
+          <div class="doc-summary" data-toggle="${d.id}">
+            <div class="left">
+              <div class="cname">${escapeHtml(d.customerName)}</div>
+              <div class="meta">${escapeHtml(d.staffName)} · ${fmtDate(d.createdAt)}</div>
+              <span class="status-pill ${d.status==='pending'?'status-pending':'status-done'}">${d.status==='pending'?'Bekliyor':'İşlendi'}</span>
+            </div>
+            <div class="right">
+              <div class="amt">${fmtMoney(d.total)}</div>
+              <div class="meta">${d.items.length} kalem</div>
+            </div>
+          </div>
+          ${expandedDoc === d.id ? `
+            <div class="doc-detail">
+              ${d.items.map(it => `
+                <div class="di-row">
+                  <span>${escapeHtml(it.name || "(isimsiz ürün)")} <span style="color:var(--steel);font-family:var(--mono);font-size:11px;">· ${escapeHtml(it.barcode)}</span></span>
+                  <span style="font-family:var(--mono);">${it.qty} × ${fmtMoney(it.price)}</span>
+                </div>
+              `).join("")}
+              ${d.status === "pending" ? `
+                <div class="doc-actions">
+                  <button class="btn btn-ok btn-sm" data-process="${d.id}">İşlendi olarak işaretle</button>
+                </div>
+              ` : `<div class="meta" style="margin-top:8px;">İşlenme zamanı: ${fmtDate(d.processedAt)}</div>`}
+            </div>
+          ` : ""}
+        </div>
+      `).join("") : `<div class="empty-note">${adminTab === 'pending' ? 'Bekleyen fiş yok.' : 'İşlenmiş fiş yok.'}</div>`;
+    } else if(adminTab === "staff"){
+      body = `
+        ${staffUsers.map(u => `
+          <div class="staff-row">
+            <div>
+              <div class="sname">${escapeHtml(u.name)} ${u.role==='admin' ? '<span class="status-pill status-done" style="margin-left:4px;">Yönetici</span>' : ''}</div>
+              <div class="suser">${escapeHtml(u.username)}</div>
+            </div>
+            ${u.username !== session.username ? `<button class="btn btn-danger btn-sm" data-del-staff="${escapeHtml(u.username)}">Sil</button>` : `<span class="meta" style="color:var(--steel);font-size:11px;">(siz)</span>`}
+          </div>
+        `).join("")}
+
+        ${showAddStaff ? `
+          <div class="add-staff-form">
+            <div class="row-2">
+              <div class="field"><label>Ad Soyad</label><input type="text" id="ns-name" value="${escapeHtml(newStaffName)}" /></div>
+              <div class="field"><label>Rol</label>
+                <select id="ns-role">
+                  <option value="staff">Personel</option>
+                  <option value="admin">Yönetici</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2">
+              <div class="field"><label>Kullanıcı adı</label><input type="text" id="ns-user" value="${escapeHtml(newStaffUser)}" /></div>
+              <div class="field"><label>Şifre</label><input type="text" id="ns-pass" value="${escapeHtml(newStaffPass)}" /></div>
+            </div>
+            <div class="save-row">
+              <button class="btn btn-ghost" id="cancel-add-staff">Vazgeç</button>
+              <button class="btn btn-amber" id="confirm-add-staff">Ekle</button>
+            </div>
+          </div>
+        ` : `<button class="btn btn-primary btn-block" id="open-add-staff" style="margin-top:14px;">+ Personel / yönetici ekle</button>`}
+      `;
+    }
+
+    const pendingCount = documents.filter(d=>d.status==="pending").length;
+
+    return `
+      <div class="topbar">
+        <div class="brand"><span class="name">Hırdavat</span><span class="sub">Yönetim Paneli</span></div>
+        <div class="who">
+          <span>${escapeHtml(session.name)} <span class="badge">Yönetici</span></span>
+          <button class="logout-btn" id="logout-btn">Çıkış</button>
+        </div>
+      </div>
+      <div class="hazard"></div>
+      <div class="wrap">
+        <div class="tabs">
+          <button class="tab-btn ${adminTab==='pending'?'active':''}" data-tab="pending">Bekleyen ${pendingCount ? '('+pendingCount+')' : ''}</button>
+          <button class="tab-btn ${adminTab==='done'?'active':''}" data-tab="done">İşlenmiş</button>
+          <button class="tab-btn ${adminTab==='staff'?'active':''}" data-tab="staff">Personel</button>
+        </div>
+        ${body}
+      </div>
+    `;
+  }
+
+  function attachHandlers(){
+    if(view === "login"){
+      const form = document.getElementById("login-form");
+      if(form) form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const u = document.getElementById("login-user").value.trim();
+        const p = document.getElementById("login-pass").value;
+        busy = true; loginError=""; render();
+        const users = await loadUsers();
+        const found = users.find(x => x.username.toLowerCase() === u.toLowerCase() && x.password === p);
+        busy = false;
+        if(!found){
+          loginError = "Kullanıcı adı veya şifre hatalı.";
+          render();
+          return;
+        }
+        session = found;
+        loginError = "";
+        if(found.role === "admin"){
+          view = "admin";
+          documents = await loadDocs();
+          staffUsers = await loadUsers();
+        } else {
+          view = "staff";
+          customers = await loadCustomers();
+          staffStage = "search";
+        }
+        render();
+      });
+      return;
+    }
+
+    const logoutBtn = document.getElementById("logout-btn");
+    if(logoutBtn) logoutBtn.addEventListener("click", ()=>{
+      session = null; view = "login";
+      staffStage = "search"; activeCustomer=null; ticketItems=[]; custQuery=""; showNewCustForm=false;
+      adminTab = "pending"; expandedDoc = null; showAddStaff = false;
+      render();
+    });
+
+    if(view === "staff"){
+      if(staffStage === "search"){
+        const searchInput = document.getElementById("cust-search");
+        if(searchInput){
+          searchInput.addEventListener("input", (e)=>{ custQuery = e.target.value; render(); });
+          const val = searchInput.value; searchInput.focus(); searchInput.setSelectionRange(val.length, val.length);
+        }
+        document.querySelectorAll("[data-cust]").forEach(el=>{
+          el.addEventListener("click", ()=>{
+            const c = customers.find(x=>x.id === el.getAttribute("data-cust"));
+            activeCustomer = c; ticketItems = []; staffStage = "ticket";
+            render();
+          });
+        });
+        const openNew = document.getElementById("open-new-cust");
+        if(openNew) openNew.addEventListener("click", ()=>{ showNewCustForm = true; newCustName=custQuery.trim(); newCustPhone=""; render(); });
+        const cancelNew = document.getElementById("cancel-new-cust");
+        if(cancelNew) cancelNew.addEventListener("click", ()=>{ showNewCustForm = false; render(); });
+        const nameF = document.getElementById("new-cust-name");
+        if(nameF){
+          nameF.addEventListener("input", e=> newCustName = e.target.value);
+          if(showNewCustForm && newCustName){
+            nameF.focus();
+            nameF.setSelectionRange(newCustName.length, newCustName.length);
+          }
+        }
+        const phoneF = document.getElementById("new-cust-phone");
+        if(phoneF) phoneF.addEventListener("input", e=> newCustPhone = e.target.value);
+        const confirmNew = document.getElementById("confirm-new-cust");
+        if(confirmNew) confirmNew.addEventListener("click", async ()=>{
+          const nameVal = (document.getElementById("new-cust-name").value || "").trim();
+          const phoneVal = (document.getElementById("new-cust-phone").value || "").trim();
+          if(!nameVal) return;
+          const c = {id: uid("cust"), name: nameVal, phone: phoneVal, createdAt: Date.now()};
+          customers.push(c);
+          await saveCustomers(customers);
+          showNewCustForm = false;
+          activeCustomer = c; ticketItems = []; staffStage = "ticket";
+          render();
+        });
+      } else {
+        const changeCust = document.getElementById("change-cust");
+        if(changeCust) changeCust.addEventListener("click", ()=>{
+          if(ticketItems.length && !confirm("Fişteki kalemler silinecek, devam edilsin mi?")) return;
+          staffStage = "search"; activeCustomer=null; ticketItems=[]; render();
+        });
+        const cancelTicket = document.getElementById("cancel-ticket");
+        if(cancelTicket) cancelTicket.addEventListener("click", ()=>{
+          if(ticketItems.length && !confirm("Fiş kaydedilmeden iptal edilsin mi?")) return;
+          staffStage = "search"; activeCustomer=null; ticketItems=[]; render();
+        });
+
+        const openScanner = document.getElementById("open-scanner");
+        if(openScanner) openScanner.addEventListener("click", startScanner);
+
+        const manualInput = document.getElementById("manual-barcode");
+        if(manualInput){
+          manualInput.addEventListener("input", e=> manualBarcode = e.target.value);
+          manualInput.addEventListener("keydown", e=>{ if(e.key === "Enter"){ e.preventDefault(); addManualBarcode(); } });
+        }
+        const addManualBtn = document.getElementById("add-manual-barcode");
+        if(addManualBtn) addManualBtn.addEventListener("click", addManualBarcode);
+
+        document.querySelectorAll(".item-row").forEach(row=>{
+          const id = row.getAttribute("data-item");
+          row.querySelectorAll("input[data-field]").forEach(inp=>{
+            inp.addEventListener("input", (e)=>{
+              const item = ticketItems.find(x=>x.id===id);
+              if(!item) return;
+              const field = e.target.getAttribute("data-field");
+              item[field] = field === "name" ? e.target.value : e.target.value;
+              const totalEl = document.querySelector(".total-val");
+              if(totalEl){
+                const total = ticketItems.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
+                totalEl.textContent = fmtMoney(total);
+              }
+              const saveBtn = document.getElementById("save-ticket");
+              if(saveBtn) saveBtn.disabled = ticketItems.length === 0;
+            });
+          });
+        });
+        document.querySelectorAll("[data-remove]").forEach(btn=>{
+          btn.addEventListener("click", ()=>{
+            ticketItems = ticketItems.filter(x=>x.id !== btn.getAttribute("data-remove"));
+            render();
+          });
+        });
+
+        const saveBtn = document.getElementById("save-ticket");
+        if(saveBtn) saveBtn.addEventListener("click", saveTicket);
+      }
+
+      const closeScanner = document.getElementById("close-scanner");
+      if(closeScanner) closeScanner.addEventListener("click", stopScanner);
+      if(scannerActive && document.getElementById("reader") && !html5Qrcode){
+        launchCamera();
+      }
+    }
+
+    if(view === "admin"){
+      document.querySelectorAll("[data-tab]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{ adminTab = btn.getAttribute("data-tab"); expandedDoc=null; render(); });
+      });
+      document.querySelectorAll("[data-toggle]").forEach(el=>{
+        el.addEventListener("click", ()=>{
+          const id = el.getAttribute("data-toggle");
+          expandedDoc = expandedDoc === id ? null : id;
+          render();
+        });
+      });
+      document.querySelectorAll("[data-process]").forEach(btn=>{
+        btn.addEventListener("click", async (e)=>{
+          e.stopPropagation();
+          const id = btn.getAttribute("data-process");
+          const doc = documents.find(d=>d.id===id);
+          if(!doc) return;
+          doc.status = "done"; doc.processedAt = Date.now();
+          await saveDocs(documents);
+          render();
+        });
+      });
+      const openAddStaff = document.getElementById("open-add-staff");
+      if(openAddStaff) openAddStaff.addEventListener("click", ()=>{
+        showAddStaff = true; newStaffName=""; newStaffUser=""; newStaffPass=""; render();
+      });
+      const cancelAddStaff = document.getElementById("cancel-add-staff");
+      if(cancelAddStaff) cancelAddStaff.addEventListener("click", ()=>{ showAddStaff=false; render(); });
+      const confirmAddStaff = document.getElementById("confirm-add-staff");
+      if(confirmAddStaff) confirmAddStaff.addEventListener("click", async ()=>{
+        const name = (document.getElementById("ns-name").value||"").trim();
+        const role = document.getElementById("ns-role").value;
+        const username = (document.getElementById("ns-user").value||"").trim();
+        const pass = (document.getElementById("ns-pass").value||"").trim();
+        if(!name || !username || !pass) return;
+        if(staffUsers.some(u=>u.username.toLowerCase()===username.toLowerCase())){
+          alert("Bu kullanıcı adı zaten kayıtlı.");
+          return;
+        }
+        staffUsers.push({name, username, password: pass, role});
+        await saveUsers(staffUsers);
+        showAddStaff = false;
+        render();
+      });
+      document.querySelectorAll("[data-del-staff]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const uname = btn.getAttribute("data-del-staff");
+          if(!confirm("Bu hesap silinsin mi?")) return;
+          staffUsers = staffUsers.filter(u=>u.username !== uname);
+          await saveUsers(staffUsers);
+          render();
+        });
+      });
+    }
+  }
+
+  function addManualBarcode(){
+    const code = manualBarcode.trim();
+    if(!code) return;
+    addItemByBarcode(code);
+    manualBarcode = "";
+    render();
+  }
+
+  async function addItemByBarcode(code){
+    const products = await loadProducts();
+    const knownName = products[code] || "";
+    ticketItems.push({id: uid("it"), barcode: code, name: knownName, qty: 1, price: 0});
+  }
+
+  async function saveTicket(){
+    const total = ticketItems.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
+    const doc = {
+      id: uid("doc"),
+      customerId: activeCustomer.id,
+      customerName: activeCustomer.name,
+      staffUsername: session.username,
+      staffName: session.name,
+      items: ticketItems.map(it=>({barcode: it.barcode, name: it.name, qty: Number(it.qty)||0, price: Number(it.price)||0})),
+      total,
+      status: "pending",
+      createdAt: Date.now(),
+      processedAt: null
+    };
+    const docs = await loadDocs();
+    docs.push(doc);
+    const ok = await saveDocs(docs);
+
+    // remember product names for known barcodes for next time
+    const products = await loadProducts();
+    let changed = false;
+    ticketItems.forEach(it=>{
+      if(it.name && it.name.trim() && products[it.barcode] !== it.name.trim()){
+        products[it.barcode] = it.name.trim();
+        changed = true;
+      }
+    });
+    if(changed) await saveProducts(products);
+
+    if(!ok){
+      alert("Fiş kaydedilemedi, lütfen tekrar deneyin.");
+      return;
+    }
+    ticketItems = []; activeCustomer = null; staffStage = "search";
+    render();
+  }
+
+  function startScanner(){
+    scannerActive = true;
+    html5Qrcode = null;
+    scanHandled = false;
+    render();
+  }
+  function stopScanner(){
+    if(html5Qrcode){
+      html5Qrcode.stop().then(()=>{ html5Qrcode.clear(); }).catch(()=>{});
+    }
+    html5Qrcode = null;
+    scannerActive = false;
+    render();
+  }
+  function launchCamera(){
+    const statusEl = document.getElementById("scan-status");
+    try{
+      const formats = (window.Html5QrcodeSupportedFormats) ? [
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.CODABAR,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.QR_CODE
+      ] : undefined;
+
+      html5Qrcode = new Html5Qrcode("reader", formats ? {formatsToSupport: formats, verbose:false} : {verbose:false});
+      html5Qrcode.start(
+        {facingMode:"environment"},
+        {fps:10, qrbox:{width:260, height:150}},
+        (decodedText)=>{
+          if(scanHandled) return;
+          scanHandled = true;
+          if(statusEl) statusEl.textContent = "Okundu: " + decodedText;
+          addItemByBarcode(decodedText).then(()=>{
+            stopScanner();
+          });
+        },
+        ()=>{ /* per-frame scan failure, ignore */ }
+      ).catch((err)=>{
+        if(statusEl) statusEl.textContent = "Kamera açılamadı. Tarayıcı izinlerini kontrol edin ya da barkodu manuel girin.";
+        console.error(err);
+      });
+    }catch(e){
+      if(statusEl) statusEl.textContent = "Bu cihazda kamera taraması desteklenmiyor. Barkodu manuel girin.";
+    }
+  }
+
+  async function init(){
+    await ensureSeedUsers();
+    render();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
